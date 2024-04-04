@@ -1,0 +1,61 @@
+{{template "base" .}}
+
+{{define "content"}}
+    <div class="container">
+        <div class="row">
+            <div class="col">
+                <div class="mt-5">
+                    <a href="/" class="link-secondary link-offset-1 link-offset-1-hover link-underline link-underline-opacity-0 link-underline-opacity-100-hover">Back to Home page</a>
+                    <h1 class="mt-3 text-start">🗂️ categories</h1>
+                </div>
+
+                <div class="row">
+                    <div class="text-start mt-4">
+                        {{$res := index .Data "categories"}}
+
+                        <table class="table table-hover">
+                            <thead>
+                            <tr>
+                                <th scope="col">🔑 id</th>
+                                <th scope="col">title</th>
+                                <th scope="col"></th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                                {{ $lastID := 0 }}
+                                    {{range $res}}
+                                    <tr>
+                                        <td style="width: 5%"><b>{{ .ID }}</b></td>
+                                        <td>{{ .Title }}</td>
+                                        <td>
+                                            <div class="d-flex justify-content-end gap-2">
+                                                <button type="button" class="btn btn-sm btn-light">✏️</button>
+                                                <button type="button" class="btn btn-sm btn-outline-danger">🗑️</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {{ $lastID = .ID }}
+                                {{end}}
+                                <tr class="table-light">
+                                    <form action="/add_category" method="post">
+                                        <td>
+                                            <b>{{add $lastID 1}}</b>
+                                        </td>
+                                        <td>
+                                            <input type="text" name="title" class="form-control form-control-sm" placeholder="title" required>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex justify-content-end gap-2">
+                                                <button type="submit" class="btn btn-sm btn-success">Create</button>
+                                            </div>
+                                        </td>
+                                    </form>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{{end}}

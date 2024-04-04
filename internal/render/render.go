@@ -10,6 +10,7 @@ import (
 	"log"
 	"net/http"
 	"path/filepath"
+	"reflect"
 )
 
 var functions = template.FuncMap{
@@ -18,11 +19,33 @@ var functions = template.FuncMap{
 }
 
 var app *config.AppConfig
-
 var pathToTemplates = "./templates"
 
-func Add(a, b int) int {
-	return a + b
+func Add(a, b any) any {
+	switch aType := a.(type) {
+	case int:
+		switch bType := b.(type) {
+		case int:
+			return aType + bType
+		case uint:
+			return int(aType) + int(bType)
+		default:
+			log.Printf("Unsupported type for 'b': %v", reflect.TypeOf(b))
+		}
+	case uint:
+		switch bType := b.(type) {
+		case uint:
+			return aType + bType
+		case int:
+			return int(aType) + bType
+		default:
+			log.Printf("Unsupported type for 'b': %v", reflect.TypeOf(b))
+		}
+	default:
+		log.Printf("Unsupported type for 'a': %v", reflect.TypeOf(a))
+	}
+
+	return nil
 }
 
 func Iterate(count int) []int {
@@ -59,7 +82,7 @@ func Template(w http.ResponseWriter, r *http.Request, tmpl string, td *models.Te
 
 	buf := new(bytes.Buffer)
 
-	err := t.Execute(buf, nil)
+	err := t.Execute(buf, td)
 
 	// Render the template
 	_, err = buf.WriteTo(w)
@@ -75,7 +98,7 @@ func CreateTemplateCache() (map[string]*template.Template, error) {
 	myCache := map[string]*template.Template{}
 
 	// Get all the files named*.page.gohtml from ./templates
-	pages, err := filepath.Glob(fmt.Sprintf("%s/*.gohtml", pathToTemplates))
+	pages, err := filepath.Glob(fmt.Sprintf("%s/*.page.gohtml", pathToTemplates))
 	if err != nil {
 		return myCache, err
 	}
@@ -88,13 +111,13 @@ func CreateTemplateCache() (map[string]*template.Template, error) {
 			return myCache, err
 		}
 
-		matches, err := filepath.Glob(fmt.Sprintf("%s/*.gohtml", pathToTemplates))
+		matches, err := filepath.Glob(fmt.Sprintf("%s/*.layout.gohtml", pathToTemplates))
 		if err != nil {
 			return myCache, err
 		}
 
 		if len(matches) > 0 {
-			ts, err = ts.ParseGlob(fmt.Sprintf("%s/*.gohtml", pathToTemplates))
+			ts, err = ts.ParseGlob(fmt.Sprintf("%s/*.layout.gohtml", pathToTemplates))
 			if err != nil {
 				return myCache, err
 			}

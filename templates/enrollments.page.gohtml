@@ -1,0 +1,80 @@
+{{template "base" .}}
+
+{{define "content"}}
+    <div class="container">
+        <div class="row">
+            <div class="col">
+                <div class="mt-5">
+                    <a href="/" class="link-secondary link-offset-1 link-offset-1-hover link-underline
+                    link-underline-opacity-0 link-underline-opacity-100-hover">Back to Home page</a>
+                    <h1 class="mt-3 text-start">🎓 enrollments</h1>
+                </div>
+
+                <div class="row">
+                    <div class="text-start mt-4">
+                        {{$res := index .Data "enrollments"}}
+                        {{$users := index .Data "users"}}
+                        {{$courses := index .Data "courses"}}
+
+                        <table class="table table-hover">
+                            <thead>
+                            <tr>
+                                <th scope="col">🔑 user_id</th>
+                                <th scope="col">🔑 course_id</th>
+                                <th scope="col"></th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {{range $res}}
+                                <tr>
+                                    <td>
+                                        <a href="/users" class="text-decoration-none text-reset">
+                                            <b data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="{{ .User.FirstName }} {{ .User.LastName }}">{{ .UserID }}</b>
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <a href="/courses" class="text-decoration-none text-reset">
+                                            <b data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="{{ .Course.Title }}">{{ .CourseID }}</b>
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex justify-content-end gap-2">
+                                            <button type="button" class="btn btn-sm btn-light">✏️</button>
+                                            <button type="button" class="btn btn-sm btn-outline-danger">🗑️</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {{end}}
+                            <tr class="table-light">
+                                <form action="/add_enrollment" method="post">
+                                    <td>
+                                        <select name="userID" class="form-select form-select-sm" required>
+                                            <option value="" disabled selected>user_id</option>
+                                            {{range $users}}
+                                                <option value="{{.ID}}">{{.ID}} ({{ .FirstName }} {{ .LastName }})</option>
+                                            {{end}}
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <select name="courseID" class="form-select form-select-sm" required>
+                                            <option value="" disabled selected>course_id</option>
+                                            {{range $courses}}
+                                                <option value="{{.ID}}">{{.ID}} ({{ .Title }})</option>
+                                            {{end}}
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex justify-content-end gap-2">
+                                            <button type="submit" class="btn btn-sm btn-success">Create</button>
+                                        </div>
+                                    </td>
+                                </form>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{{end}}

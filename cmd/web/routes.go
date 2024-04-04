@@ -17,7 +17,7 @@ func routes(app *config.AppConfig) http.Handler {
 
 	mux.Get("/courses", handlers.Repo.Courses)
 	mux.Get("/categories", handlers.Repo.Categories)
-	mux.Get("/courses-and-categories", handlers.Repo.CoursesAndCategories)
+	mux.Get("/categories_junction", handlers.Repo.CategoriesJunction)
 	mux.Get("/enrollments", handlers.Repo.Enrollments)
 	mux.Get("/users", handlers.Repo.Users)
 

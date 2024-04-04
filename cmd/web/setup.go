@@ -5,6 +5,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/vladyslavpavlenko/dbms-lab2/internal/config"
 	"github.com/vladyslavpavlenko/dbms-lab2/internal/handlers"
+	"github.com/vladyslavpavlenko/dbms-lab2/internal/helpers"
 	"github.com/vladyslavpavlenko/dbms-lab2/internal/models"
 	"github.com/vladyslavpavlenko/dbms-lab2/internal/render"
 	"gorm.io/driver/postgres"
@@ -39,12 +40,13 @@ func setup(app *config.AppConfig) error {
 	repo := handlers.NewRepo(app)
 	handlers.NewHandlers(repo)
 	render.NewRenderer(app)
+	helpers.NewHelpers(app)
 
 	return nil
 }
 
 func runDatabaseMigrations(db *gorm.DB) error {
-	// create tables
+	// Create tables
 	err := db.AutoMigrate(&models.Category{})
 	if err != nil {
 		return err
@@ -65,7 +67,7 @@ func runDatabaseMigrations(db *gorm.DB) error {
 		return err
 	}
 
-	// populate tables with initial data
+	// Populate tables with initial data
 	err = createInitialUsers(db)
 	if err != nil {
 		return fmt.Errorf("error creating initial users: %v", err)
