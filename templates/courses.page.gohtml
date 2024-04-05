@@ -14,13 +14,46 @@
                         {{$res := index .Data "courses"}}
                         {{$users := index .Data "users"}}
 
+                        <div class="modal fade" id="editCourseModal" tabindex="-1" aria-labelledby="editCourseModalLabel" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content">
+                                    <div class="modal-body">
+                                        <form id="editCourseForm">
+                                            <input type="hidden" id="editID">
+                                            <div class="mb-3">
+                                                <label for="editCourseTitle" class="form-label"><b>title</b></label>
+                                                <input type="text" class="form-control form-control-sm" id="editTitle" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="editCourseDescription" class="form-label"><b>description</b></label>
+                                                <input type="text" class="form-control form-control-sm" id="editDescription" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="editInstructorID" class="form-label"><b>🗝️ instructor_id</b></label>
+                                                <select class="form-select form-select-sm" id="editInstructorID" required>
+                                                    <option value="" disabled selected>instructor_id</option>
+                                                    {{range $users}}
+                                                        <option value="{{.ID}}">{{.ID}} ({{.FirstName}} {{.LastName}})</option>
+                                                    {{end}}
+                                                </select>
+                                            </div>
+                                        </form>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-sm btn-light" data-bs-dismiss="modal">Close</button>
+                                        <button type="button" class="btn btn-sm btn-success" onclick="saveCourseChanges()">Save</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <table class="table table-hover">
                             <thead>
                             <tr>
                                 <th scope="col">🔑 id</th>
                                 <th scope="col">title</th>
                                 <th scope="col">description</th>
-                                <th scope="col">instructor_id</th>
+                                <th scope="col">🗝️ instructor_id</th>
                                 <th scope="col"></th>
                             </tr>
                             </thead>
@@ -38,8 +71,8 @@
                                             </td>
                                             <td>
                                                 <div class="d-flex justify-content-end gap-2">
-                                                    <button type="button" class="btn btn-sm btn-light">✏️</button>
-                                                    <button type="button" class="btn btn-sm btn-outline-danger">🗑️</button>
+                                                    <button type="button" class="btn btn-sm btn-light edit-btn" data-bs-toggle="modal" data-bs-target="#editCourseModal" data-id="{{.ID}}" data-title="{{.Title}}" data-description="{{.Description}}" data-instructorid="{{.InstructorID}}">✏️</button>
+                                                    <button type="button" class="btn btn-sm btn-light">❌️</button>
                                                 </div>
                                             </td>
                                         </tr>
@@ -79,4 +112,61 @@
             </div>
         </div>
     </div>
+{{end}}
+
+{{define "js"}}
+    <script>
+    var editCourseModal = document.getElementById('editCourseModal')
+
+    editCourseModal.addEventListener('show.bs.modal', function (event) {
+    var button = event.relatedTarget
+
+    var courseId = button.getAttribute('data-id')
+    var courseTitle = button.getAttribute('data-title')
+    var courseDescription = button.getAttribute('data-description')
+    var instructorID = button.getAttribute('data-instructorid')
+
+    var modalTitleInput = editCourseModal.querySelector('#editTitle')
+    var modalDescriptionInput = editCourseModal.querySelector('#editDescription')
+    var modalInstructorSelect = editCourseModal.querySelector('#editInstructorID')
+    var modalCourseIdInput = editCourseModal.querySelector('#editID')
+
+    modalTitleInput.value = courseTitle
+    modalDescriptionInput.value = courseDescription
+    modalInstructorSelect.value = instructorID
+    modalCourseIdInput.value = courseId
+    })
+
+    function saveCourseChanges() {
+        var form = document.getElementById('editCourseForm');
+
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+
+        var courseId = document.getElementById('editID').value;
+        var title = document.getElementById('editTitle').value;
+        var description = document.getElementById('editDescription').value;
+        var instructorId = document.getElementById('editInstructorID').value;
+
+        fetch('/courses/update', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `id=${courseId}&title=${encodeURIComponent(title)}&description=${encodeURIComponent(description)}&instructorID=${instructorId}`
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.text();
+            })
+            .then(() => {
+                window.location.reload();
+            })
+            .catch(error => console.error('Error:', error));
+    }
+    </script>
 {{end}}

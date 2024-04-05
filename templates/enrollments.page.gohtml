@@ -12,20 +12,53 @@
 
                 <div class="row">
                     <div class="text-start mt-4">
-                        {{$res := index .Data "enrollments"}}
+                        {{$enrollments := index .Data "enrollments"}}
                         {{$users := index .Data "users"}}
                         {{$courses := index .Data "courses"}}
+
+                        <div class="modal fade" id="editEnrollmentModal" tabindex="-1" aria-labelledby="editEnrollmentModalLabel" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content">
+                                    <div class="modal-body">
+                                        <form id="editEnrollmentForm">
+                                            <input type="hidden" id="oldUserID" name="oldUserID">
+                                            <input type="hidden" id="oldCourseID" name="oldCourseID">
+                                            <label for="editUserID" class="form-label"><b>🔑🗝 user_id</b></label>
+                                            <select class="form-select form-select-sm" id="editUserID" required>
+                                                <option value="" disabled selected>user_id</option>
+                                                {{range $users}}
+                                                    <option value="{{.ID}}">{{.ID}} ({{.FirstName}} {{.LastName}})</option>
+                                                {{end}}
+                                            </select>
+                                            <div class="mt-3">
+                                                <label for="editCourseID" class="form-label"><b>🔑🗝 course_id</b></label>
+                                                <select class="form-select form-select-sm" id="editCourseID" required>
+                                                    <option value="" disabled selected>course_id</option>
+                                                    {{range $courses}}
+                                                        <option value="{{.ID}}">{{.ID}} ({{.Title}})</option>
+                                                    {{end}}
+                                                </select>
+                                            </div>
+                                        </form>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-sm btn-light" data-bs-dismiss="modal">Close</button>
+                                        <button type="button" class="btn btn-sm btn-success" onclick="saveEnrollmentChanges()">Save</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
                         <table class="table table-hover">
                             <thead>
                             <tr>
-                                <th scope="col">🔑 user_id</th>
-                                <th scope="col">🔑 course_id</th>
+                                <th scope="col">🔑🗝️ user_id</th>
+                                <th scope="col">🔑🗝️ course_id</th>
                                 <th scope="col"></th>
                             </tr>
                             </thead>
                             <tbody>
-                            {{range $res}}
+                            {{range $enrollments}}
                                 <tr>
                                     <td>
                                         <a href="/users" class="text-decoration-none text-reset">
@@ -39,14 +72,14 @@
                                     </td>
                                     <td>
                                         <div class="d-flex justify-content-end gap-2">
-                                            <button type="button" class="btn btn-sm btn-light">✏️</button>
-                                            <button type="button" class="btn btn-sm btn-outline-danger">🗑️</button>
+                                            <button type="button" class="btn btn-sm btn-light edit-btn" data-bs-toggle="modal" data-bs-target="#editEnrollmentModal" data-userid="{{ .UserID }}" data-courseid="{{ .CourseID }}">✏️</button>
+                                            <button type="button" class="btn btn-sm btn-light">❌️</button>
                                         </div>
                                     </td>
                                 </tr>
                             {{end}}
                             <tr class="table-light">
-                                <form action="/add_enrollment" method="post">
+                                <form action="/enrollments/add" method="post">
                                     <td>
                                         <select name="userID" class="form-select form-select-sm" required>
                                             <option value="" disabled selected>user_id</option>
@@ -77,4 +110,61 @@
             </div>
         </div>
     </div>
+{{end}}
+
+{{define "js"}}
+    <script>
+        var editEnrollmentModal = document.getElementById('editEnrollmentModal')
+
+        editEnrollmentModal.addEventListener('show.bs.modal', function (event) {
+            var button = event.relatedTarget
+
+            var userID = button.getAttribute('data-userid')
+            var courseID = button.getAttribute('data-courseid')
+
+            var modalUserIDSelect = editEnrollmentModal.querySelector('#editUserID')
+            var modalCourseIDSelect = editEnrollmentModal.querySelector('#editCourseID')
+            var modalOldUserIDInput = editEnrollmentModal.querySelector('#oldUserID')
+            var modalOldCourseIDInput = editEnrollmentModal.querySelector('#oldCourseID')
+
+            modalUserIDSelect.value = userID
+            modalCourseIDSelect.value = courseID
+            modalOldUserIDInput.value = userID
+            modalOldCourseIDInput.value = courseID
+        })
+
+        function saveEnrollmentChanges() {
+            var form = document.getElementById('editEnrollmentForm');
+
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            var userID = document.getElementById('editUserID').value;
+            var courseID = document.getElementById('editCourseID').value;
+            var oldUserID = document.getElementById('oldUserID').value;
+            var oldCourseID = document.getElementById('oldCourseID').value;
+
+            fetch('/enrollments/update', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `oldUserID=${oldUserID}&oldCourseID=${oldCourseID}&userID=${userID}&courseID=${courseID}`
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.text().then(text => {
+                            throw new Error(text);
+                        });
+                    }
+                    window.location.reload();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    notie.alert({type: 'error', text: error.message, time: 4});
+                });
+        }
+    </script>
 {{end}}

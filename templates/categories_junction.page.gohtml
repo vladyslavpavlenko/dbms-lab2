@@ -14,11 +14,44 @@
                         {{$courses := index .Data "courses"}}
                         {{$categories := index .Data "categories"}}
 
+                        <div class="modal fade" id="editCourseCategoryModal" tabindex="-1" aria-labelledby="editCourseCategoryLabel" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content">
+                                    <div class="modal-body">
+                                        <form id="editCourseCategoryForm">
+                                            <input type="hidden" id="oldCourseID" name="oldCourseID">
+                                            <input type="hidden" id="oldCategoryID" name="oldCategoryID">
+                                            <label for="editCourseID" class="form-label"><b>🔑🗝 course_id</b></label>
+                                            <select class="form-select form-select-sm" id="editCourseID" required>
+                                                <option value="" disabled selected>user_id</option>
+                                                {{range $courses}}
+                                                    <option value="{{.ID}}">{{.ID}} ({{.Title}})</option>
+                                                {{end}}
+                                            </select>
+                                            <div class="mt-3">
+                                                <label for="editCategoryID" class="form-label"><b>🔑🗝 category_id</b></label>
+                                                <select class="form-select form-select-sm" id="editCategoryID" required>
+                                                    <option value="" disabled selected>category_id</option>
+                                                    {{range $categories}}
+                                                        <option value="{{.ID}}">{{.ID}} ({{.Title}})</option>
+                                                    {{end}}
+                                                </select>
+                                            </div>
+                                        </form>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-sm btn-light" data-bs-dismiss="modal">Close</button>
+                                        <button type="button" class="btn btn-sm btn-success" onclick="saveCourseCategoryChanges()">Save</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <table class="table table-hover">
                             <thead>
                             <tr>
-                                <th scope="col">🔑 course_id</th>
-                                <th scope="col">🔑 category_id</th>
+                                <th scope="col">🔑🗝️ course_id</th>
+                                <th scope="col">🔑🗝️ category_id</th>
                                 <th scope="col"></th>
                             </tr>
                             </thead>
@@ -38,8 +71,8 @@
                                 </td>
                                 <td>
                                     <div class="d-flex justify-content-end gap-2">
-                                        <button type="button" class="btn btn-sm btn-light">✏️</button>
-                                        <button type="button" class="btn btn-sm btn-outline-danger">🗑️</button>
+                                        <button type="button" class="btn btn-sm btn-light edit-btn" data-bs-toggle="modal" data-bs-target="#editCourseCategoryModal" data-courseid="{{ $course.ID }}" data-categoryid="{{ $category.ID }}">✏️</button>
+                                        <button type="button" class="btn btn-sm btn-light">❌️</button>
                                     </div>
                                 </td>
                             </tr>
@@ -77,4 +110,61 @@
             </div>
         </div>
     </div>
+{{end}}
+
+{{define "js"}}
+    <script>
+        var editCourseCategoryModal = document.getElementById('editCourseCategoryModal');
+
+        editCourseCategoryModal.addEventListener('show.bs.modal', function(event) {
+            var button = event.relatedTarget;
+
+            var courseID = button.getAttribute('data-courseid');
+            var categoryID = button.getAttribute('data-categoryid');
+
+            var modalCourseIDSelect = editCourseCategoryModal.querySelector('#editCourseID');
+            var modalCategoryIDSelect = editCourseCategoryModal.querySelector('#editCategoryID');
+            var modalOldCourseIDInput = editCourseCategoryModal.querySelector('#oldCourseID');
+            var modalOldCategoryIDInput = editCourseCategoryModal.querySelector('#oldCategoryID');
+
+            modalOldCourseIDInput.value = courseID;
+            modalOldCategoryIDInput.value = categoryID;
+            modalCourseIDSelect.value = courseID;
+            modalCategoryIDSelect.value = categoryID;
+        });
+
+        function saveCourseCategoryChanges() {
+            var form = document.getElementById('editCourseCategoryForm');
+
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            var oldCourseID = document.getElementById('oldCourseID').value;
+            var oldCategoryID = document.getElementById('oldCategoryID').value;
+            var newCourseID = document.getElementById('editCourseID').value;
+            var newCategoryID = document.getElementById('editCategoryID').value;
+
+            fetch('/categories_junction/update', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `oldCourseID=${oldCourseID}&oldCategoryID=${oldCategoryID}&courseID=${newCourseID}&categoryID=${newCategoryID}`
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.text().then(text => {
+                            throw new Error(text);
+                        });
+                    }
+                    window.location.reload();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    notie.alert({type: 'error', text: error.message, time: 4});
+                });
+        }
+    </script>
 {{end}}
