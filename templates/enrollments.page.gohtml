@@ -73,7 +73,7 @@
                                     <td>
                                         <div class="d-flex justify-content-end gap-2">
                                             <button type="button" class="btn btn-sm btn-light edit-btn" data-bs-toggle="modal" data-bs-target="#editEnrollmentModal" data-userid="{{ .UserID }}" data-courseid="{{ .CourseID }}">✏️</button>
-                                            <button type="button" class="btn btn-sm btn-light">❌️</button>
+                                            <button type="button" class="btn btn-sm btn-light delete-btn" data-userid="{{.UserID}}" data-courseid="{{.CourseID}}">❌️</button>
                                         </div>
                                     </td>
                                 </tr>
@@ -114,6 +114,30 @@
 
 {{define "js"}}
     <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('.delete-btn').forEach(button => {
+                button.addEventListener('click', function () {
+                    const userID = this.getAttribute('data-userid');
+                    const courseID = this.getAttribute('data-courseid');
+                    if (confirm('Are you sure you want to delete this enrollment?')) {
+                        fetch(`/enrollments/delete/${userID}/${courseID}`, {
+                            method: 'DELETE',
+                        })
+                            .then(response => {
+                                if (response.ok) {
+                                    location.reload();
+                                } else {
+                                    alert('There was an error trying to delete the enrollment.');
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error:', error);
+                            });
+                    }
+                });
+            });
+        });
+
         var editEnrollmentModal = document.getElementById('editEnrollmentModal')
 
         editEnrollmentModal.addEventListener('show.bs.modal', function (event) {

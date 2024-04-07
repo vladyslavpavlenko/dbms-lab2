@@ -72,7 +72,7 @@
                                 <td>
                                     <div class="d-flex justify-content-end gap-2">
                                         <button type="button" class="btn btn-sm btn-light edit-btn" data-bs-toggle="modal" data-bs-target="#editCourseCategoryModal" data-courseid="{{ $course.ID }}" data-categoryid="{{ $category.ID }}">✏️</button>
-                                        <button type="button" class="btn btn-sm btn-light">❌️</button>
+                                        <button type="button" class="btn btn-sm btn-light delete-btn" data-categoryid="{{$category.ID}}" data-courseid="{{$course.ID}}">❌️</button>
                                     </div>
                                 </td>
                             </tr>
@@ -114,6 +114,30 @@
 
 {{define "js"}}
     <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('.delete-btn').forEach(button => {
+                button.addEventListener('click', function () {
+                    const categoryID = this.getAttribute('data-categoryid');
+                    const courseID = this.getAttribute('data-courseid');
+                    if (confirm('Are you sure you want to delete this junction?')) {
+                        fetch(`/categories_junction/delete/${categoryID}/${courseID}`, {
+                            method: 'DELETE',
+                        })
+                            .then(response => {
+                                if (response.ok) {
+                                    location.reload();
+                                } else {
+                                    alert('There was an error trying to delete the junction.');
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error:', error);
+                            });
+                    }
+                });
+            });
+        });
+
         var editCourseCategoryModal = document.getElementById('editCourseCategoryModal');
 
         editCourseCategoryModal.addEventListener('show.bs.modal', function(event) {

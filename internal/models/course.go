@@ -7,5 +7,6 @@ type Course struct {
 	Description  string
 	Categories   []Category `gorm:"many2many:categories_junction;"`
 	InstructorID uint
-	Instructor   User
+	Instructor   User         `gorm:"constraint:OnDelete:CASCADE;"`
+	Enrollments  []Enrollment `gorm:"constraint:OnDelete:CASCADE;"`
 }

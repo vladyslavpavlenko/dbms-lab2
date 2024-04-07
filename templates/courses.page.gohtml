@@ -72,7 +72,7 @@
                                             <td>
                                                 <div class="d-flex justify-content-end gap-2">
                                                     <button type="button" class="btn btn-sm btn-light edit-btn" data-bs-toggle="modal" data-bs-target="#editCourseModal" data-id="{{.ID}}" data-title="{{.Title}}" data-description="{{.Description}}" data-instructorid="{{.InstructorID}}">✏️</button>
-                                                    <button type="button" class="btn btn-sm btn-light">❌️</button>
+                                                    <button type="button" class="btn btn-sm btn-light delete-btn" data-id="{{.ID}}">❌️</button>
                                                 </div>
                                             </td>
                                         </tr>
@@ -116,57 +116,80 @@
 
 {{define "js"}}
     <script>
-    var editCourseModal = document.getElementById('editCourseModal')
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('.delete-btn').forEach(button => {
+                button.addEventListener('click', function () {
+                    const courseID = this.getAttribute('data-id');
+                    if (confirm('Are you sure you want to delete this course?')) {
+                        fetch(`/courses/delete/${courseID}`, {
+                            method: 'DELETE',
+                        })
+                            .then(response => {
+                                if (response.ok) {
+                                    location.reload();
+                                } else {
+                                    alert('There was an error trying to delete the course.');
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error:', error);
+                            });
+                    }
+                });
+            });
+        });
 
-    editCourseModal.addEventListener('show.bs.modal', function (event) {
-    var button = event.relatedTarget
+        var editCourseModal = document.getElementById('editCourseModal')
 
-    var courseId = button.getAttribute('data-id')
-    var courseTitle = button.getAttribute('data-title')
-    var courseDescription = button.getAttribute('data-description')
-    var instructorID = button.getAttribute('data-instructorid')
+        editCourseModal.addEventListener('show.bs.modal', function (event) {
+        var button = event.relatedTarget
 
-    var modalTitleInput = editCourseModal.querySelector('#editTitle')
-    var modalDescriptionInput = editCourseModal.querySelector('#editDescription')
-    var modalInstructorSelect = editCourseModal.querySelector('#editInstructorID')
-    var modalCourseIdInput = editCourseModal.querySelector('#editID')
+        var courseId = button.getAttribute('data-id')
+        var courseTitle = button.getAttribute('data-title')
+        var courseDescription = button.getAttribute('data-description')
+        var instructorID = button.getAttribute('data-instructorid')
 
-    modalTitleInput.value = courseTitle
-    modalDescriptionInput.value = courseDescription
-    modalInstructorSelect.value = instructorID
-    modalCourseIdInput.value = courseId
-    })
+        var modalTitleInput = editCourseModal.querySelector('#editTitle')
+        var modalDescriptionInput = editCourseModal.querySelector('#editDescription')
+        var modalInstructorSelect = editCourseModal.querySelector('#editInstructorID')
+        var modalCourseIdInput = editCourseModal.querySelector('#editID')
 
-    function saveCourseChanges() {
-        var form = document.getElementById('editCourseForm');
-
-        if (!form.checkValidity()) {
-            form.reportValidity();
-            return;
-        }
-
-        var courseId = document.getElementById('editID').value;
-        var title = document.getElementById('editTitle').value;
-        var description = document.getElementById('editDescription').value;
-        var instructorId = document.getElementById('editInstructorID').value;
-
-        fetch('/courses/update', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: `id=${courseId}&title=${encodeURIComponent(title)}&description=${encodeURIComponent(description)}&instructorID=${instructorId}`
+        modalTitleInput.value = courseTitle
+        modalDescriptionInput.value = courseDescription
+        modalInstructorSelect.value = instructorID
+        modalCourseIdInput.value = courseId
         })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.text();
+
+        function saveCourseChanges() {
+            var form = document.getElementById('editCourseForm');
+
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            var courseId = document.getElementById('editID').value;
+            var title = document.getElementById('editTitle').value;
+            var description = document.getElementById('editDescription').value;
+            var instructorId = document.getElementById('editInstructorID').value;
+
+            fetch('/courses/update', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `id=${courseId}&title=${encodeURIComponent(title)}&description=${encodeURIComponent(description)}&instructorID=${instructorId}`
             })
-            .then(() => {
-                window.location.reload();
-            })
-            .catch(error => console.error('Error:', error));
-    }
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.text();
+                })
+                .then(() => {
+                    window.location.reload();
+                })
+                .catch(error => console.error('Error:', error));
+        }
     </script>
 {{end}}
