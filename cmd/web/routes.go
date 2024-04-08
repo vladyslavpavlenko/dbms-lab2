@@ -16,11 +16,11 @@ func routes(app *config.AppConfig) http.Handler {
 	mux.Get("/", handlers.Repo.Home)
 
 	// create
-	//mux.Post("/courses/create", handlers.Repo.CreateCourse)
-	//mux.Post("/categories/create", handlers.Repo.CreareCategory)
-	//mux.Post("/categories_junction/create", handlers.Repo.CreateCategoryJunction)
-	//mux.Post("/enrollments/create", handlers.Repo.CreateEnrollment)
-	//mux.Post("/users/create", handlers.Repo.CreateUser)
+	mux.Post("/courses/create", handlers.Repo.CreateCourse)
+	mux.Post("/categories/create", handlers.Repo.CreateCategory)
+	mux.Post("/categories_junction/create", handlers.Repo.CreateCategoryJunction)
+	mux.Post("/enrollments/create", handlers.Repo.CreateEnrollment)
+	mux.Post("/users/create", handlers.Repo.CreateUser)
 
 	// read
 	mux.Get("/courses", handlers.Repo.Courses)

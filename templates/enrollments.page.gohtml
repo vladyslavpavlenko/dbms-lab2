@@ -79,29 +79,27 @@
                                 </tr>
                             {{end}}
                             <tr class="table-light">
-                                <form action="/enrollments/add" method="post">
-                                    <td>
-                                        <select name="userID" class="form-select form-select-sm" required>
-                                            <option value="" disabled selected>user_id</option>
-                                            {{range $users}}
-                                                <option value="{{.ID}}">{{.ID}} ({{ .FirstName }} {{ .LastName }})</option>
-                                            {{end}}
-                                        </select>
-                                    </td>
-                                    <td>
-                                        <select name="courseID" class="form-select form-select-sm" required>
-                                            <option value="" disabled selected>course_id</option>
-                                            {{range $courses}}
-                                                <option value="{{.ID}}">{{.ID}} ({{ .Title }})</option>
-                                            {{end}}
-                                        </select>
-                                    </td>
-                                    <td>
-                                        <div class="d-flex justify-content-end gap-2">
-                                            <button type="submit" class="btn btn-sm btn-success">Create</button>
-                                        </div>
-                                    </td>
-                                </form>
+                                <td>
+                                    <select id="newUserID" class="form-select form-select-sm" required>
+                                        <option value="" disabled selected>user_id</option>
+                                        {{range $users}}
+                                            <option value="{{.ID}}">{{.ID}} ({{ .FirstName }} {{ .LastName }})</option>
+                                        {{end}}
+                                    </select>
+                                </td>
+                                <td>
+                                    <select id="newCourseID" class="form-select form-select-sm" required>
+                                        <option value="" disabled selected>course_id</option>
+                                        {{range $courses}}
+                                            <option value="{{.ID}}">{{.ID}} ({{ .Title }})</option>
+                                        {{end}}
+                                    </select>
+                                </td>
+                                <td>
+                                    <div class="d-flex justify-content-end gap-2">
+                                        <button id="createEnrollmentBtn" class="btn btn-sm btn-success">Create</button>
+                                    </div>
+                                </td>
                             </tr>
                             </tbody>
                         </table>
@@ -114,6 +112,34 @@
 
 {{define "js"}}
     <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const createBtn = document.getElementById('createEnrollmentBtn');
+            createBtn.addEventListener('click', function () {
+                const userID = document.getElementById('newUserID').value;
+                const courseID = document.getElementById('newCourseID').value;
+
+                fetch('/enrollments/create', {
+                    method: 'POST',
+                    body: `userID=${userID}&courseID=${courseID}`,
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            return response.text().then(text => {
+                                throw new Error(text);
+                            });
+                        }
+                        window.location.reload();
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        notie.alert({type: 'error', text: error.message, time: 4});
+                    });
+            });
+        });
+
         document.addEventListener('DOMContentLoaded', function () {
             document.querySelectorAll('.delete-btn').forEach(button => {
                 button.addEventListener('click', function () {

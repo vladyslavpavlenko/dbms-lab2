@@ -79,18 +79,17 @@
                                     {{ $lastID = .ID }}
                                 {{end}}
                                 <tr class="table-light">
-                                    <form action="/add_course" method="post">
+                                    <form id="createCourseForm" method="post">
                                         <td>
-                                            <b>{{add $lastID 1}}</b>
                                         </td>
                                         <td>
-                                            <input type="text" name="title" class="form-control form-control-sm" placeholder="title" required>
+                                            <input type="text" name="title" id="courseTitle" class="form-control form-control-sm" placeholder="title" required>
                                         </td>
                                         <td>
-                                            <input type="text" name="description" class="form-control form-control-sm" placeholder="description" required>
+                                            <input type="text" name="description" id="courseDescription" class="form-control form-control-sm" placeholder="description" required>
                                         </td>
                                         <td>
-                                            <select name="instructorID" class="form-select form-select-sm" required>
+                                            <select name="instructorID" id="courseInstructorID" class="form-select form-select-sm" required>
                                                 <option value="" disabled selected>instructor_id</option>
                                                 {{range $users}}
                                                     <option value="{{.ID}}">{{.ID}} ({{ .FirstName }} {{ .LastName }})</option>
@@ -116,6 +115,38 @@
 
 {{define "js"}}
     <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const createForm = document.getElementById('createCourseForm');
+            createForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                const formData = new FormData(createForm);
+                const searchParams = new URLSearchParams();
+
+                for (const pair of formData) {
+                    searchParams.append(pair[0], pair[1]);
+                }
+
+                fetch('/courses/create', {
+                    method: 'POST',
+                    body: searchParams,
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        window.location.reload();
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('There was an error trying to create the course.');
+                    });
+            });
+        });
+
         document.addEventListener('DOMContentLoaded', function () {
             document.querySelectorAll('.delete-btn').forEach(button => {
                 button.addEventListener('click', function () {
