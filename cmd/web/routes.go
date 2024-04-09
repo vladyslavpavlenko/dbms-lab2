@@ -45,6 +45,5 @@ func routes(app *config.AppConfig) http.Handler {
 
 	// queries
 	mux.Get("/queries", handlers.Repo.Queries)
-	mux.Get("/queries/courses_in_category", handlers.Repo.CoursesInCategory)
 	return mux
 }

@@ -59,18 +59,33 @@ func (m *Repository) Home(w http.ResponseWriter, r *http.Request) {
 }
 
 func (m *Repository) Queries(w http.ResponseWriter, r *http.Request) {
-	log.Println("rendering queries.page.gohtml...")
+	log.Println("Rendering queries.page.gohtml...")
+
+	var courses []models.Course
+	err := m.App.DB.Order("id").Find(&courses).Error
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
 
 	var categories []models.Category
+	err = m.App.DB.Order("id").Find(&categories).Error
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
 
-	err := m.App.DB.Order("id").Find(&categories).Error
+	var users []models.User
+	err = m.App.DB.Order("id").Find(&users).Error
 	if err != nil {
 		helpers.ServerError(w, err)
 		return
 	}
 
 	data := make(map[string]any)
+	data["courses"] = courses
 	data["categories"] = categories
+	data["users"] = users
 	data["currentPage"] = "queries"
 
 	err = render.Template(w, r, "queries.page.gohtml", &models.TemplateData{
